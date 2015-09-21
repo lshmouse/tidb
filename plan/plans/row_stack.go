@@ -14,6 +14,8 @@
 package plans
 
 import (
+	"fmt"
+
 	"github.com/juju/errors"
 	"github.com/pingcap/tidb/context"
 	"github.com/pingcap/tidb/expression"
@@ -163,12 +165,14 @@ func popRowStack(ctx context.Context) error {
 
 func getIdentValueFromOuterQuery(ctx context.Context, name string) (interface{}, error) {
 	s := getRowStack(ctx)
+	fmt.Println("[getIdentValueFromOuterQuery][0]", name, s, ctx)
 	if s == nil {
 		return nil, errors.Errorf("unknown field %s", name)
 	}
 
 	// The top is current RowStack, use its last.
-	n := len(s.items) - 2
+	// n := len(s.items) - 2
+	n := len(s.items) - 1
 
 	var (
 		v   interface{}
@@ -178,9 +182,11 @@ func getIdentValueFromOuterQuery(ctx context.Context, name string) (interface{},
 	for ; n >= 0; n-- {
 		t := s.items[n]
 
+		fmt.Println("[getIdentValueFromOuterQuery]", n, name, t.FromDataFields, t.FromData, t.OutDataFields, t.OutData)
+
 		// first try to get from outer table reference.
 		if t.FromData != nil {
-			v, err = GetIdentValue(name, t.FromDataFields, t.FromData, field.DefaultFieldFlag)
+			v, err = GetIdentValue(name, t.FromDataFields, t.FromData, field.CheckFieldFlag)
 			if err == nil {
 				// tell current subquery using outer query
 				expressions.SetOuterQueryUsed(ctx)
@@ -191,6 +197,7 @@ func getIdentValueFromOuterQuery(ctx context.Context, name string) (interface{},
 		// then try to get from outer select list.
 		if t.OutData != nil {
 			v, err = GetIdentValue(name, t.OutDataFields, t.OutData, field.FieldNameFlag)
+			fmt.Println("[getIdentValueFromOuterQuery][1]", n, name, t.OutDataFields, v, err)
 			if err == nil {
 				// tell current subquery using outer query
 				expressions.SetOuterQueryUsed(ctx)

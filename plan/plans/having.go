@@ -14,6 +14,8 @@
 package plans
 
 import (
+	"fmt"
+
 	"github.com/juju/errors"
 	"github.com/pingcap/tidb/context"
 	"github.com/pingcap/tidb/expression"
@@ -63,10 +65,12 @@ func (r *HavingPlan) Next(ctx context.Context) (row *plan.Row, err error) {
 			return nil, errors.Trace(err)
 		}
 		r.evalArgs[expressions.ExprEvalIdentFunc] = func(name string) (interface{}, error) {
-			v, err0 := GetIdentValue(name, r.Src.GetFields(), srcRow.Data, field.CheckFieldFlag)
-			if err0 == nil {
-				return v, nil
-			}
+			// v, err0 := GetIdentValue(name, r.Src.GetFields(), srcRow.Data, field.CheckFieldFlag)
+			// if err0 == nil {
+			// 	return v, nil
+			// }
+
+			fmt.Println("[HavingPlan][Nex]", name, r.Src.GetFields(), srcRow.Data)
 
 			// try to find in outer query
 			return getIdentValueFromOuterQuery(ctx, name)
@@ -78,9 +82,11 @@ func (r *HavingPlan) Next(ctx context.Context) (row *plan.Row, err error) {
 		}
 		var v bool
 		v, err = expressions.EvalBoolExpr(ctx, r.Expr, r.evalArgs)
+		fmt.Println("[HavingPlan]", v, err)
 		if err != nil {
 			return nil, errors.Trace(err)
 		}
+
 		if v {
 			row = srcRow
 			return

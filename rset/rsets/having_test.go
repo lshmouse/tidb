@@ -73,7 +73,7 @@ func (s *testHavingRsetSuite) TestHavingRsetCheckAndUpdateSelectList(c *C) {
 
 	groupBy = []expression.Expression{expr}
 	err = s.r.CheckAndUpdateSelectList(selectList, groupBy, resultFields)
-	c.Assert(err, IsNil)
+	c.Assert(err, NotNil)
 
 	// `select name from t group by id + 1 having count(1) > 1`
 	aggExpr, err := expressions.NewCall("count", []expression.Expression{expressions.Value{Val: 1}}, false)

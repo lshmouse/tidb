@@ -53,13 +53,17 @@ func (r *HavingRset) CheckAndUpdateSelectList(selectList *plans.SelectList, grou
 			// check name whether in select list.
 			// notice that `select c1 as c2 from t group by c1, c2, c3 having c2 > c3`,
 			// will use t.c2 not t.c1 here.
-			if field.ContainFieldName(name, selectList.ResultFields, field.OrgFieldNameFlag) {
-				continue
-			}
-			if field.ContainFieldName(name, selectList.ResultFields, field.FieldNameFlag) {
-				if field.ContainFieldName(name, tableFields, field.OrgFieldNameFlag) {
-					selectList.CloneHiddenField(name, tableFields)
-				}
+			// if field.ContainFieldName(name, selectList.ResultFields, field.OrgFieldNameFlag) {
+			// 	continue
+			// }
+			// if field.ContainFieldName(name, selectList.ResultFields, field.FieldNameFlag) {
+			// 	if field.ContainFieldName(name, tableFields, field.OrgFieldNameFlag) {
+			// 		selectList.CloneHiddenField(name, tableFields)
+			// 	}
+			// 	continue
+			// }
+
+			if field.ContainFieldName(name, selectList.ResultFields, field.CheckFieldFlag) {
 				continue
 			}
 
@@ -74,7 +78,7 @@ func (r *HavingRset) CheckAndUpdateSelectList(selectList *plans.SelectList, grou
 
 				// if name is not in table fields, it will get an unknown field error in GroupByRset,
 				// so no need to check return value.
-				selectList.CloneHiddenField(name, tableFields)
+				// selectList.CloneHiddenField(name, tableFields)
 
 				found = true
 				break

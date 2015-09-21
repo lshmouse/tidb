@@ -16,6 +16,7 @@ package plans_test
 import (
 	. "github.com/pingcap/check"
 	"github.com/pingcap/tidb/expression/expressions"
+	"github.com/pingcap/tidb/field"
 	"github.com/pingcap/tidb/model"
 	"github.com/pingcap/tidb/parser/opcode"
 	"github.com/pingcap/tidb/plan/plans"
@@ -29,8 +30,39 @@ var _ = Suite(&testHavingPlan{})
 
 func (t *testHavingPlan) TestHaving(c *C) {
 	tblPlan := &testTablePlan{groupByTestData, []string{"id", "name"}, 0}
-	havingPlan := &plans.HavingPlan{
+
+	sl := &plans.SelectList{
+		HiddenFieldOffset: 2,
+		Fields: []*field.Field{
+			{
+				Expr: &expressions.Ident{
+					CIStr: model.NewCIStr("id"),
+				},
+			},
+			{
+				Expr: &expressions.Ident{
+					CIStr: model.NewCIStr("name"),
+				},
+			},
+		},
+		ResultFields: []*field.ResultField{
+			{
+				Name: "id",
+			},
+			{
+				Name: "name",
+			},
+		},
+	}
+
+	sl.FromFields = sl.ResultFields
+
+	rsPlan := &plans.RowStackFromPlan{
 		Src: tblPlan,
+	}
+
+	havingPlan := &plans.HavingPlan{
+		Src: rsPlan,
 		Expr: &expressions.BinaryOperation{
 			Op: opcode.GE,
 			L: &expressions.Ident{
@@ -42,10 +74,12 @@ func (t *testHavingPlan) TestHaving(c *C) {
 		},
 	}
 
+	r := &plans.SelectFinalPlan{Src: havingPlan, SelectList: sl}
+
 	// having's behavior just like where
 	cnt := 0
 	rset := rsets.Recordset{
-		Plan: havingPlan,
+		Plan: r,
 		Ctx:  mock.NewContext(),
 	}
 	rset.Do(func(data []interface{}) (bool, error) {
