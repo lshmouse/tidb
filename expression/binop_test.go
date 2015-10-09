@@ -18,7 +18,7 @@ import (
 	"time"
 
 	. "github.com/pingcap/check"
-
+	"github.com/pingcap/tidb/expression/builtin"
 	"github.com/pingcap/tidb/model"
 	mysql "github.com/pingcap/tidb/mysqldef"
 	"github.com/pingcap/tidb/parser/opcode"
@@ -171,7 +171,7 @@ func (s *testBinOpSuite) TestIdentRelOp(c *C) {
 	}
 
 	m := map[interface{}]interface{}{
-		ExprEvalArgAggEmpty: struct{}{},
+		builtin.ExprEvalArgAggEmpty: struct{}{},
 	}
 
 	for _, t := range tbl {
@@ -395,6 +395,8 @@ func (s *testBinOpSuite) TestNumericOp(c *C) {
 		{1, opcode.Plus, []byte("1"), 2},
 		{1, opcode.Plus, mysql.Hex{Value: 1}, 2},
 		{1, opcode.Plus, mysql.Bit{Value: 1, Width: 1}, 2},
+		{1, opcode.Plus, mysql.Enum{Name: "a", Value: 1}, 2},
+		{1, opcode.Plus, mysql.Set{Name: "a", Value: 1}, 2},
 
 		// minus
 		{1, opcode.Minus, 1, 0},

@@ -23,6 +23,7 @@ import (
 	"github.com/juju/errors"
 	"github.com/pingcap/tidb/context"
 	"github.com/pingcap/tidb/expression"
+	"github.com/pingcap/tidb/expression/builtin"
 	"github.com/pingcap/tidb/field"
 	"github.com/pingcap/tidb/kv/memkv"
 	"github.com/pingcap/tidb/plan"
@@ -199,7 +200,10 @@ func (r *GroupByDefaultPlan) evalAggFields(ctx context.Context, out []interface{
 		// so we don't evaluate count(*) in In expression, and will get an invalid data in AggDone phase for it.
 		// mention all aggregate functions
 		// TODO: optimize, we can get these aggregate functions only once and reuse
-		aggs := expression.MentionedAggregateFuncs(r.Fields[i].Expr)
+		aggs, err := expression.MentionedAggregateFuncs(r.Fields[i].Expr)
+		if err != nil {
+			return errors.Trace(err)
+		}
 		for _, agg := range aggs {
 			if _, err := agg.Eval(ctx, m); err != nil {
 				return err
@@ -212,7 +216,7 @@ func (r *GroupByDefaultPlan) evalAggFields(ctx context.Context, out []interface{
 
 func (r *GroupByDefaultPlan) evalAggDone(ctx context.Context, out []interface{},
 	m map[interface{}]interface{}) error {
-	m[expression.ExprAggDone] = true
+	m[builtin.ExprAggDone] = true
 
 	var err error
 	// Eval aggregate field results done in ctx
@@ -234,7 +238,7 @@ func (r *GroupByDefaultPlan) evalEmptyTable(ctx context.Context) ([]interface{},
 
 	out := make([]interface{}, len(r.Fields))
 	// aggregate empty record set
-	m := map[interface{}]interface{}{expression.ExprEvalArgAggEmpty: true}
+	m := map[interface{}]interface{}{builtin.ExprEvalArgAggEmpty: true}
 
 	var err error
 	for i, fld := range r.Fields {

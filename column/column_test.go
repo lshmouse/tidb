@@ -46,6 +46,33 @@ func (s *testColumnSuite) TestString(c *C) {
 
 	cs := col.String()
 	c.Assert(len(cs), Greater, 0)
+
+	col.Tp = mysql.TypeEnum
+	col.Flag = 0
+	col.Elems = []string{"a", "b"}
+
+	c.Assert(col.GetTypeDesc(), Equals, "enum('a','b')")
+
+	col.Elems = []string{"'a'", "b"}
+	c.Assert(col.GetTypeDesc(), Equals, "enum('''a''','b')")
+
+	col.Tp = mysql.TypeFloat
+	col.Flen = 8
+	col.Decimal = -1
+	c.Assert(col.GetTypeDesc(), Equals, "float")
+
+	col.Decimal = 1
+	c.Assert(col.GetTypeDesc(), Equals, "float(8,1)")
+
+	col.Tp = mysql.TypeDatetime
+	col.Decimal = 6
+	c.Assert(col.GetTypeDesc(), Equals, "datetime(6)")
+
+	col.Decimal = 0
+	c.Assert(col.GetTypeDesc(), Equals, "datetime")
+
+	col.Decimal = -1
+	c.Assert(col.GetTypeDesc(), Equals, "datetime")
 }
 
 func (s *testColumnSuite) TestFind(c *C) {

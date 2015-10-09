@@ -23,7 +23,6 @@ import (
 
 	"github.com/juju/errors"
 	"github.com/pingcap/tidb/context"
-
 	mysql "github.com/pingcap/tidb/mysqldef"
 	"github.com/pingcap/tidb/parser/opcode"
 	"github.com/pingcap/tidb/util/types"
@@ -686,6 +685,10 @@ func (o *BinaryOperation) coerceArithmetic(a interface{}) (interface{}, error) {
 	case mysql.Hex:
 		return x.ToNumber(), nil
 	case mysql.Bit:
+		return x.ToNumber(), nil
+	case mysql.Enum:
+		return x.ToNumber(), nil
+	case mysql.Set:
 		return x.ToNumber(), nil
 	default:
 		return x, nil
